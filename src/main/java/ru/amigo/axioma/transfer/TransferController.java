@@ -1,5 +1,7 @@
 package ru.amigo.axioma.transfer;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -27,6 +29,7 @@ import java.net.URI;
  */
 @RestController
 @RequestMapping("/api/transfers")
+@Tag(name = "Переводы", description = "Переводы между счетами")
 public class TransferController {
 
     private final TransferService transferService;
@@ -35,6 +38,7 @@ public class TransferController {
         this.transferService = transferService;
     }
 
+    @Operation(summary = "Создать перевод", description = "Перевод между счетами с идемпотентностью. Требует заголовок Idempotency-Key")
     @PostMapping
     public ResponseEntity<TransferResponse> create(
             @Valid @RequestBody CreateTransferRequest request,
@@ -47,6 +51,7 @@ public class TransferController {
                 .body(response);
     }
 
+    @Operation(summary = "Получить перевод по ID")
     @GetMapping("/{id}")
     public ResponseEntity<TransferResponse> getById(
             @PathVariable Long id,
@@ -55,6 +60,7 @@ public class TransferController {
         return ResponseEntity.ok(transferService.getById(id, user.getId()));
     }
 
+    @Operation(summary = "Мои переводы")
     @GetMapping("/my")
     public ResponseEntity<Page<TransferResponse>> myTransfers(
             @AuthenticationPrincipal CustomUserDetails user,

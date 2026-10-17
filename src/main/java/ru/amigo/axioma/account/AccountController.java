@@ -1,5 +1,7 @@
 package ru.amigo.axioma.account;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -27,6 +29,7 @@ import java.net.URI;
  */
 @RestController
 @RequestMapping("/api/accounts")
+@Tag(name = "Счета", description = "Управление банковскими счетами")
 public class AccountController {
 
     private final AccountService accountService;
@@ -35,6 +38,7 @@ public class AccountController {
         this.accountService = accountService;
     }
 
+    @Operation(summary = "Открыть новый счёт")
     @PostMapping
     public ResponseEntity<AccountResponse> open(@Valid @RequestBody OpenAccountRequest request) {
         AccountResponse response = accountService.open(request);
@@ -43,6 +47,7 @@ public class AccountController {
                 .body(response);
     }
 
+    @Operation(summary = "Получить счёт по ID")
     @GetMapping("/{id}")
     public ResponseEntity<AccountResponse> getById(
             @PathVariable Long id,
@@ -51,6 +56,7 @@ public class AccountController {
         return ResponseEntity.ok(accountService.getById(id, user.getId()));
     }
 
+    @Operation(summary = "Мои счета")
     @GetMapping("/my")
     public ResponseEntity<Page<AccountResponse>> myAccounts(
             @AuthenticationPrincipal CustomUserDetails user,
@@ -61,6 +67,7 @@ public class AccountController {
         return ResponseEntity.ok(accountService.listByUser(user.getId(), pageable));
     }
 
+    @Operation(summary = "Закрыть счёт")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> close(
             @PathVariable Long id,
