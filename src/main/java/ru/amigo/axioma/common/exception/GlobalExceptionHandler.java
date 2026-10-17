@@ -9,6 +9,9 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import ru.amigo.axioma.account.exception.AccountAccessDeniedException;
+import ru.amigo.axioma.account.exception.AccountHasBalanceException;
+import ru.amigo.axioma.account.exception.AccountNotFoundException;
 import ru.amigo.axioma.user.exception.UserAlreadyExistsException;
 import ru.amigo.axioma.user.exception.UserNotFoundException;
 
@@ -23,6 +26,7 @@ public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    /* -- users -- */
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleUserNotFound(
             UserNotFoundException ex, HttpServletRequest request
@@ -48,6 +52,49 @@ public class GlobalExceptionHandler {
         );
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }
+    /* -- end users -- */
+
+    /* -- accounts -- */
+    @ExceptionHandler(AccountNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleAccountNotFound(
+            AccountNotFoundException ex, HttpServletRequest request
+    ) {
+        ErrorResponse body = ErrorResponse.of(
+                HttpStatus.NOT_FOUND.value(),
+                "Not Found",
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+    }
+
+    @ExceptionHandler(AccountAccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccountAccessDenied(
+            AccountAccessDeniedException ex, HttpServletRequest request
+    ) {
+        // Намеренно возвращаем 404, чтобы не палить существование чужого счёта
+        ErrorResponse body = ErrorResponse.of(
+                HttpStatus.NOT_FOUND.value(),
+                "Not Found",
+                "Счёт не найден",
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+    }
+
+    @ExceptionHandler(AccountHasBalanceException.class)
+    public ResponseEntity<ErrorResponse> handleAccountHasBalance(
+            AccountHasBalanceException ex, HttpServletRequest request
+    ) {
+        ErrorResponse body = ErrorResponse.of(
+                HttpStatus.CONFLICT.value(),
+                "Conflict",
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    }
+    /* -- end accounts -- */
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidation(
