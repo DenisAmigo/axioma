@@ -36,3 +36,14 @@ logging:
     ru.amigo.axioma: DEBUG
     org.flywaydb: INFO
     org.hibernate.SQL: INFO
+
+app:
+  jwt:
+    # Секретный ключ. Должен быть длинным (минимум 32 символа для HS256).
+    # В проде его хранят в переменных окружения!
+    secret: "axioma-super-secret-key-for-jwt-signing-must-be-long-enough"
+    expiration-ms: 86400000 # 24 часа
+
+springdoc:
+  swagger-ui:
+    persist-authorization: true
