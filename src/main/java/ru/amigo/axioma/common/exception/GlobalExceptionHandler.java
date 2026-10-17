@@ -12,6 +12,11 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.amigo.axioma.account.exception.AccountAccessDeniedException;
 import ru.amigo.axioma.account.exception.AccountHasBalanceException;
 import ru.amigo.axioma.account.exception.AccountNotFoundException;
+import ru.amigo.axioma.transfer.exception.AccountNotActiveException;
+import ru.amigo.axioma.transfer.exception.CurrencyMismatchException;
+import ru.amigo.axioma.transfer.exception.InsufficientFundsException;
+import ru.amigo.axioma.transfer.exception.SameAccountTransferException;
+import ru.amigo.axioma.transfer.exception.TransferNotFoundException;
 import ru.amigo.axioma.user.exception.UserAlreadyExistsException;
 import ru.amigo.axioma.user.exception.UserNotFoundException;
 
@@ -95,6 +100,73 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }
     /* -- end accounts -- */
+
+    /* -- transfer -- */
+    @ExceptionHandler(TransferNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleTransferNotFound(
+            TransferNotFoundException ex, HttpServletRequest request
+    ) {
+        ErrorResponse body = ErrorResponse.of(
+                HttpStatus.NOT_FOUND.value(),
+                "Not Found",
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+    }
+
+    @ExceptionHandler(InsufficientFundsException.class)
+    public ResponseEntity<ErrorResponse> handleInsufficientFunds(
+            InsufficientFundsException ex, HttpServletRequest request
+    ) {
+        ErrorResponse body = ErrorResponse.of(
+                HttpStatus.UNPROCESSABLE_CONTENT.value(),
+                "Unprocessable Entity",
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(body);
+    }
+
+    @ExceptionHandler(SameAccountTransferException.class)
+    public ResponseEntity<ErrorResponse> handleSameAccount(
+            SameAccountTransferException ex, HttpServletRequest request
+    ) {
+        ErrorResponse body = ErrorResponse.of(
+                HttpStatus.BAD_REQUEST.value(),
+                "Bad Request",
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+
+    @ExceptionHandler(CurrencyMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleCurrencyMismatch(
+            CurrencyMismatchException ex, HttpServletRequest request
+    ) {
+        ErrorResponse body = ErrorResponse.of(
+                HttpStatus.BAD_REQUEST.value(),
+                "Bad Request",
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+
+    @ExceptionHandler(AccountNotActiveException.class)
+    public ResponseEntity<ErrorResponse> handleAccountNotActive(
+            AccountNotActiveException ex, HttpServletRequest request
+    ) {
+        ErrorResponse body = ErrorResponse.of(
+                HttpStatus.CONFLICT.value(),
+                "Conflict",
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    }
+    /* -- end transfer -- */
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidation(
