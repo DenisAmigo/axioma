@@ -78,7 +78,7 @@ public class UserController {
         return ResponseEntity.ok(userService.update(id, request));
     }
 
-    @Operation(summary = "Удалить пользователя (soft-delete")
+    @Operation(summary = "Удалить пользователя (soft-delete)")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         userService.delete(id);

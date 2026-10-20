@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ru">
+    <head>
+        <meta charset="UTF-8">
+        <title>Банкомат Axioma</title>
+        <style>
+            body { font-family: Arial, sans-serif; background: #f4f4f9; display: flex; justify-content: center; padding-top: 50px; }
+            .atm { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); width: 300px; text-align: center; }
+            h2 { color: #333; }
+            input { width: 93%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
+            button { width: 100%; padding: 10px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+            button:hover { background: #218838; }
+            #result { margin-top: 20px; font-weight: bold; }
+        </style>
+    </head>
+    <body>
+        <div class="atm">
+            <h2>Банкомат</h2>
+            <input type="number" id="accountId" placeholder="ID Счёта (например, 1)" value="1">
+            <input type="number" id="amount" placeholder="Сумма (например, 500)" value="500">
+            <button onclick="deposit()">Внести наличные</button>
+            <div id="result"></div>
+        </div>
+
+        <script>
+            async function deposit() {
+                const accountId = document.getElementById('accountId').value;
+                const amount = document.getElementById('amount').value;
+                const resultDiv = document.getElementById('result');
+
+                resultDiv.innerHTML = "Отправка купюр...";
+                resultDiv.style.color = "gray";
+
+                try {
+                    const response = await fetch('http://localhost:8081/api/atm/initiate-deposit', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ accountId: accountId, amount: amount })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok && data.success) {
+                        resultDiv.innerHTML = "✅ Купюры приняты!<br>Транзакция: " + data.transactionId;
+                        resultDiv.style.color = "green";
+                    } else {
+                        resultDiv.innerHTML = "❌ Ошибка: " + (data.message || 'Неизвестная ошибка');
+                        resultDiv.style.color = "red";
+                    }
+                } catch (e) {
+                    resultDiv.innerHTML = "❌ Ошибка сети: " + e.message;
+                    resultDiv.style.color = "red";
+                }
+            }
+        </script>
+    </body>
+</html>

@@ -31,7 +31,7 @@ public class LedgerEntry {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "transfer_id", nullable = false)
+    @JoinColumn(name = "transfer_id")
     private Transfer transfer;
 
     @ManyToOne(fetch = FetchType.LAZY)
