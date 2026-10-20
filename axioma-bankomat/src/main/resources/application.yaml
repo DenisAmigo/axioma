@@ -4,3 +4,18 @@ spring:
 
 server:
   port: 8081
+
+resilience4j:
+  retry:
+    instances:
+      coreService:
+        max-attempts: 3
+        wait-duration: 1s
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
+  circuitbreaker:
+    instances:
+      coreService:
+        sliding-window-size: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s

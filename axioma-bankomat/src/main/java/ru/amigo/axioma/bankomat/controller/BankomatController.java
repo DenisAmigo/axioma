@@ -1,5 +1,9 @@
 package ru.amigo.axioma.bankomat.controller;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,6 +24,8 @@ import java.util.UUID;
 @RequestMapping("/api/atm")
 public class BankomatController {
 
+    private static final Logger log = LoggerFactory.getLogger(BankomatController.class);
+
     private final RestClient coreRestClient;
     private final TokenService tokenService;
 
@@ -31,48 +37,53 @@ public class BankomatController {
     }
 
     @PostMapping("/initiate-deposit")
+    @CircuitBreaker(name = "coreService")
+    @Retry(name = "coreService", fallbackMethod = "fallbackDeposit")
     public Map<String, Object> initiateDeposit(@RequestBody BankomatRequest request) {
         // Банкомат формирует сообщение (traceNumber)
         String traceNumber = UUID.randomUUID().toString();
         String atmId = "ATM-MSK-001";
 
-        System.out.println("Bankomat: Принимаю купюры на " + request.amount() + " руб.");
+        log.info("Bankomat: Попытка отправить депозит в ядро. Trace: {}", traceNumber);
 
         // Отправляем в Ядро с помощью POST
-        try {
-            String token = tokenService.getToken();
+        String token = tokenService.getToken();
 
-            Map<String, Object> coreRequest = Map.of(
-                    "accountId", request.accountId(),
-                    "amount", request.amount(),
-                    "atmId", atmId,
-                    "traceNumber", traceNumber
+        Map<String, Object> coreRequest = Map.of(
+                "accountId", request.accountId(),
+                "amount", request.amount(),
+                "atmId", atmId,
+                "traceNumber", traceNumber
+        );
+
+        Map<String, Object> coreResponse = coreRestClient.post()
+                .uri("/api/atm/deposits")
+                .header("Authorization", "Bearer " + token)
+                .body(coreRequest)
+                .retrieve()
+                .body(new ParameterizedTypeReference<>() {
+                });
+
+        // Формируем ответ для фронтенда
+        if (coreResponse != null && "CONFIRMED".equals(coreResponse.get("status"))) {
+            return Map.of(
+                    "success", true,
+                    "transactionId", coreResponse.get("atmTransactionId"),
+                    "message", "Купюры приняты. Баланс пополнен."
             );
-
-            Map<String, Object> coreResponse = coreRestClient.post()
-                    .uri("/api/atm/deposits")
-                    .header("Authorization", "Bearer " + token)
-                    .body(coreRequest)
-                    .retrieve()
-                    .body(new ParameterizedTypeReference<>() {});
-
-            // Формируем ответ для фронтенда
-            if (coreResponse != null && "CONFIRMED".equals(coreResponse.get("status"))) {
-                return Map.of(
-                        "success", true,
-                        "transactionId", coreResponse.get("atmTransactionId"),
-                        "message", "Купюры приняты. Баланс пополнен."
-                );
-            } else {
-                return Map.of(
-                        "success", false,
-                        "message", "Ядро не подтвердило транзакцию"
-                );
-            }
-
-        } catch (Exception e) {
-            System.err.println("Bankomat: Ошибка связи с ядром: " + e.getMessage());
-            return Map.of("success", false, "message", "Ошибка процессинга: " + e.getMessage());
+        } else {
+            return Map.of(
+                    "success", false,
+                    "message", "Ядро не подтвердило транзакцию"
+            );
         }
+    }
+
+    public Map<String, Object> fallbackDeposit(BankomatRequest request, Throwable t) {
+        log.error("Bankomat: Все попытки исчерпаны. Ошибка: {}", t.getMessage());
+        return Map.of(
+                "success", false,
+                "message", "Сервис временно недоступен. Попробуйте позже."
+        );
     }
 }
