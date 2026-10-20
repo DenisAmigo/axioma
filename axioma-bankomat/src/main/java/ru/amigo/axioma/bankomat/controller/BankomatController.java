@@ -40,6 +40,15 @@ public class BankomatController {
     @CircuitBreaker(name = "coreService")
     @Retry(name = "coreService", fallbackMethod = "fallbackDeposit")
     public Map<String, Object> initiateDeposit(@RequestBody BankomatRequest request) {
+        // Иммитируем сбой
+        if (request.simulateFailure()) {
+            log.warn("Bankomat: Смоделирован сбой при приеме купюр!");
+            return Map.of(
+                    "success", false,
+                    "message", "Ошибка банкомата: купюры зажевало. Обратитесь в поддержку."
+            );
+        }
+
         // Банкомат формирует сообщение (traceNumber)
         String traceNumber = UUID.randomUUID().toString();
         String atmId = "ATM-MSK-001";

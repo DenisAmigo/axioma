@@ -8,5 +8,6 @@ import java.math.BigDecimal;
  */
 public record BankomatRequest(
         Long accountId,
-        BigDecimal amount
+        BigDecimal amount,
+        boolean simulateFailure
 ) {}
