@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: axioma-bankomat
+
+server:
+  port: 8081

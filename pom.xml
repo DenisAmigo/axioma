@@ -19,7 +19,7 @@
 
 	<modules>
 		<module>axioma-core</module>
-		<!--<module>axioma-bankomat</module>-->
+		<module>axioma-bankomat</module>
 	</modules>
 
 	<properties>
