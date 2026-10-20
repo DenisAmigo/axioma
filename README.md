@@ -63,8 +63,8 @@
 |---|-----------------------------------------------------------------|---|
 | 0 | Скелет проекта: Spring Boot, PostgreSQL, Flyway, Docker Compose | ✅ |
 | 1 | Ядро: счета, переводы, леджер, идемпотентность, JWT, тесты      | ✅ |
-| 2 | Депозиты (ATM) + заглушка-банк                                  | 🔄 в работе |
-| 3 | e-ОСАГО с холдом и TTL                                          | ⏳ план |
+| 2 | Депозиты (ATM) + заглушка-банк + Retry/CircuitBreaker           | ✅ |
+| 3 | e-ОСАГО с холдом и TTL                                          | 🔄 в работе |
 | 4 | Kafka + outbox                                                  | ⏳ план |
 | 5 | Фронт на Thymeleaf                                              | ⏳ план |
 
@@ -99,7 +99,8 @@ Spring Boot сам поднимет PostgreSQL через Docker Compose.
 - [x] Идемпотентность переводов
 - [x] JWT-аутентификация и роли
 - [x] Интеграционные тесты с Testcontainers
-- [ ] Депозиты через эмулятор ATM
+- [x] Депозиты через эмулятор ATM (axioma-bankomat)
+- [x] Retry и Circuit Breaker (Resilience4j)
 - [ ] e-ОСАГО: quote, холд, TTL, сага
 - [ ] Kafka + outbox
 - [ ] Минимальный фронт на Thymeleaf
