@@ -15,6 +15,8 @@ import ru.amigo.axioma.ledger.EntryType;
 import ru.amigo.axioma.ledger.LedgerEntry;
 import ru.amigo.axioma.ledger.LedgerEntryRepository;
 import ru.amigo.axioma.user.User;
+import ru.amigo.axioma.user.UserRepository;
+import ru.amigo.axioma.user.exception.UserNotFoundException;
 
 import java.time.Instant;
 import java.util.List;
@@ -31,15 +33,26 @@ public class InsuranceService {
     private final AccountRepository accountRepository;
     private final InsurancePolicyRepository policyRepository;
     private final LedgerEntryRepository ledgerEntryRepository;
+    private final InsuranceQuoteRepository quoteRepository;
+    private final UserRepository userRepository;
 
-    public InsuranceService(InsuranceQuoteClient quoteClient, AccountRepository accountRepository, InsurancePolicyRepository policyRepository, LedgerEntryRepository ledgerEntryRepository) {
+    public InsuranceService(
+            InsuranceQuoteClient quoteClient,
+            AccountRepository accountRepository,
+            InsurancePolicyRepository policyRepository,
+            LedgerEntryRepository ledgerEntryRepository,
+            InsuranceQuoteRepository quoteRepository,
+            UserRepository userRepository
+    ) {
         this.quoteClient = quoteClient;
         this.accountRepository = accountRepository;
         this.policyRepository = policyRepository;
         this.ledgerEntryRepository = ledgerEntryRepository;
+        this.quoteRepository = quoteRepository;
+        this.userRepository = userRepository;
     }
 
-    public List<InsuranceQuoteResponse> getQuotes(InsuranceQuoteRequest request) {
+    public List<InsuranceQuoteResponse> getQuotes(Long userId, InsuranceQuoteRequest request) {
         try {
             // Ждем результат максимум 3 секунды
             CompletableFuture<List<InsuranceQuoteResponse>> future = quoteClient.getQuotesAsync(request);
@@ -47,8 +60,22 @@ public class InsuranceService {
             // Если страховая не ответит за 3 секунды, мы отдадим пустой список (таймаут)
             List<InsuranceQuoteResponse> responses = future.orTimeout(3, java.util.concurrent.TimeUnit.SECONDS).join();
 
-            // Сортируем по цене (от дешевой к дорогой)
             if (responses != null) {
+                User user = userRepository.findById(userId)
+                        .orElseThrow(() -> new UserNotFoundException(userId));
+
+                // Сохраняем каждое предложение
+                for (InsuranceQuoteResponse quote : responses) {
+                    InsuranceQuote entity = new InsuranceQuote(
+                            user,
+                            quote.companyCode(),
+                            quote.amount(),
+                            "region=" + request.region() + ", age=" + request.age() + ", hp=" + request.horsePower()
+                    );
+                    quoteRepository.save(entity);
+                }
+
+                // Сортируем по цене (от дешевой к дорогой)
                 return responses.stream()
                         .sorted((a, b) -> a.amount().compareTo(b.amount()))
                         .toList();

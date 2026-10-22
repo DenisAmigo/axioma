@@ -36,8 +36,11 @@ public class InsuranceController {
 
     @Operation(summary = "Получить расчет ОСАГО", description = "Возвращает предложения от страховых компаний, отсортированные по цене")
     @PostMapping("/quotes")
-    public ResponseEntity<List<InsuranceQuoteResponse>> getQuotes(@RequestBody InsuranceQuoteRequest request) {
-        return ResponseEntity.ok(insuranceService.getQuotes(request));
+    public ResponseEntity<List<InsuranceQuoteResponse>> getQuotes(
+            @RequestBody InsuranceQuoteRequest request,
+            @AuthenticationPrincipal CustomUserDetails user
+    ) {
+        return ResponseEntity.ok(insuranceService.getQuotes(user.getId(), request));
     }
 
     @Operation(summary = "Создать заявку на ОСАГО", description = "Замораживает деньги на счете и создает заявку (холд)")
