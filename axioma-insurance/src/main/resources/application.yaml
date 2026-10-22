@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: axioma-insurance
+
+server:
+  port: 8082

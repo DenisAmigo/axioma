@@ -49,6 +49,9 @@ public class Account {
     @Column(nullable = false, length = 20)
     private AccountStatus status = AccountStatus.ACTIVE;
 
+    @Column(name = "held_amount", nullable = false, precision = 19, scale = 2)
+    private BigDecimal heldAmount = BigDecimal.ZERO;
+
     @Version
     @Column(nullable = false)
     private Long version;
@@ -82,6 +85,9 @@ public class Account {
     public void setBalance(BigDecimal balance) { this.balance = balance; }
     public AccountStatus getStatus() { return status; }
     public void setStatus(AccountStatus status) { this.status = status; }
+    public BigDecimal getHeldAmount() { return heldAmount; }
+    public void setHeldAmount(BigDecimal heldAmount) { this.heldAmount = heldAmount; }
+    public BigDecimal getAvailableBalance() { return this.balance.subtract(this.heldAmount); }
     public Long getVersion() { return version; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
