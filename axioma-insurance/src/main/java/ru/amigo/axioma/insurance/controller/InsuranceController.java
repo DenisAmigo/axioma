@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.amigo.axioma.insurance.domain.CompanyRegistry;
 import ru.amigo.axioma.insurance.domain.InsuranceCoefficients;
 import ru.amigo.axioma.insurance.domain.InsuranceCompany;
+import ru.amigo.axioma.insurance.dto.IssuePolicyRequest;
+import ru.amigo.axioma.insurance.dto.IssuePolicyResponse;
 import ru.amigo.axioma.insurance.dto.QuoteRequest;
 import ru.amigo.axioma.insurance.dto.QuoteResponse;
 
@@ -66,5 +68,29 @@ public class InsuranceController {
         }
 
         return results;
+    }
+
+    @PostMapping("/issue")
+    public IssuePolicyResponse issuePolicy(@RequestBody IssuePolicyRequest request) {
+        // Имитация: с вероятностью 10% страховая отказывает (например, ошибка на их стороне)
+        if (Math.random() < 0.1) {
+            return new IssuePolicyResponse(false, null, "Ошибка на стороне страховой компании");
+        }
+
+        // Имитация выпуска
+        String policyNumber = generatePolicyNumber();
+        return new IssuePolicyResponse(true, policyNumber, "Полис успешно выпущен");
+    }
+
+    /**
+     * Генерирует номер полиса по формату XXX0000000000
+     * @return строковый номер полиса
+     */
+    private String generatePolicyNumber() {
+        StringBuilder digits = new StringBuilder();
+        for (int i = 0; i < 10; i++) {
+            digits.append((int) (Math.random() * 10));
+        }
+        return "XXX" + digits;
     }
 }

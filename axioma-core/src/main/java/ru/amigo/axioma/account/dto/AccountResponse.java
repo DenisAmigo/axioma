@@ -18,6 +18,7 @@ public record AccountResponse(
         Currency currency,
         BigDecimal balance,
         AccountStatus status,
+        BigDecimal held_amount,
         Instant createdAt
 ) {
     public static AccountResponse from(Account account) {
@@ -28,6 +29,7 @@ public record AccountResponse(
                 account.getCurrency(),
                 account.getBalance(),
                 account.getStatus(),
+                account.getHeldAmount(),
                 account.getCreatedAt()
         );
     }

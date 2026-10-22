@@ -7,7 +7,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import ru.amigo.axioma.insurance.dto.InsuranceQuoteRequest;
 import ru.amigo.axioma.insurance.dto.InsuranceQuoteResponse;
+import ru.amigo.axioma.insurance.dto.IssuePolicyRequest;
+import ru.amigo.axioma.insurance.dto.IssuePolicyResponse;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -40,5 +43,18 @@ public class InsuranceQuoteClient {
                 return List.of();
             }
         });
+    }
+
+    public IssuePolicyResponse issuePolicy(String companyCode, BigDecimal amount) {
+        try {
+            return insuranceRestClient.post()
+                    .uri("/api/insurance/issue")
+                    .body(new IssuePolicyRequest(companyCode, amount))
+                    .retrieve()
+                    .body(IssuePolicyResponse.class);
+        } catch (Exception e) {
+            log.error("Ошибка при выпуске полиса: {}", e.getMessage());
+            return new IssuePolicyResponse(false, null, "Страховая недоступна: " + e.getMessage());
+        }
     }
 }
