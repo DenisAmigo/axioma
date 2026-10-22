@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.amigo.axioma.account.exception.AccountAccessDeniedException;
 import ru.amigo.axioma.account.exception.AccountHasBalanceException;
 import ru.amigo.axioma.account.exception.AccountNotFoundException;
+import ru.amigo.axioma.insurance.exception.InsufficientAvailableFundsException;
 import ru.amigo.axioma.transfer.exception.AccountNotActiveException;
 import ru.amigo.axioma.transfer.exception.CurrencyMismatchException;
 import ru.amigo.axioma.transfer.exception.InsufficientFundsException;
@@ -167,6 +168,21 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }
     /* -- end transfer -- */
+
+    /* -- insurance -- */
+    @ExceptionHandler(InsufficientAvailableFundsException.class)
+    public ResponseEntity<ErrorResponse> handleInsufficientAvailableFunds(
+            InsufficientAvailableFundsException ex, HttpServletRequest request
+    ) {
+        ErrorResponse body = ErrorResponse.of(
+                HttpStatus.UNPROCESSABLE_CONTENT.value(),
+                "Unprocessable Content",
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(body);
+    }
+    /* -- end insurance -- */
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidation(

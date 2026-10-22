@@ -10,6 +10,7 @@ import ru.amigo.axioma.insurance.dto.InsuranceQuoteRequest;
 import ru.amigo.axioma.insurance.dto.InsuranceQuoteResponse;
 import ru.amigo.axioma.insurance.dto.IssuePolicyResponse;
 import ru.amigo.axioma.insurance.dto.PolicyResponse;
+import ru.amigo.axioma.insurance.exception.InsufficientAvailableFundsException;
 import ru.amigo.axioma.ledger.EntryType;
 import ru.amigo.axioma.ledger.LedgerEntry;
 import ru.amigo.axioma.ledger.LedgerEntryRepository;
@@ -72,7 +73,7 @@ public class InsuranceService {
 
         // 3. Проверить доступный баланс (balance - heldAmount >= amount)
         if (account.getAvailableBalance().compareTo(request.amount()) < 0) {
-            throw new RuntimeException("Недостаточно доступных средств");
+            throw new InsufficientAvailableFundsException(account.getAvailableBalance(), request.amount());
         }
 
         // 4. Сделать холд
