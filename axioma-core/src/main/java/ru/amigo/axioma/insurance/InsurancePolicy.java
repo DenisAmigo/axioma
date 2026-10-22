@@ -84,6 +84,7 @@ public class InsurancePolicy {
     public void setPolicyNumber(String policyNumber) { this.policyNumber = policyNumber; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getExpiresAt() { return expiresAt; }
+    public void setExpiresAt(Instant expiresAt) { this.expiresAt = expiresAt; }
     public Instant getCompletedAt() { return completedAt; }
     public void setCompletedAt(Instant completedAt) { this.completedAt = completedAt; }
 }
