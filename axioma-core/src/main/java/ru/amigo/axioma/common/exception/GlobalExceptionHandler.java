@@ -13,6 +13,7 @@ import ru.amigo.axioma.account.exception.AccountAccessDeniedException;
 import ru.amigo.axioma.account.exception.AccountHasBalanceException;
 import ru.amigo.axioma.account.exception.AccountNotFoundException;
 import ru.amigo.axioma.insurance.exception.InsufficientAvailableFundsException;
+import ru.amigo.axioma.insurance.exception.PolicyAccessDeniedException;
 import ru.amigo.axioma.transfer.exception.AccountNotActiveException;
 import ru.amigo.axioma.transfer.exception.CurrencyMismatchException;
 import ru.amigo.axioma.transfer.exception.InsufficientFundsException;
@@ -181,6 +182,20 @@ public class GlobalExceptionHandler {
                 request.getRequestURI()
         );
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(body);
+    }
+
+    @ExceptionHandler(PolicyAccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handlePolicyAccessDenied(
+            PolicyAccessDeniedException ex, HttpServletRequest request
+    ) {
+        // Возвращаем 404, чтобы не палить существование чужого счёта
+        ErrorResponse body = ErrorResponse.of(
+                HttpStatus.NOT_FOUND.value(),
+                "Not Found",
+                "Счёт не найден",
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
     }
     /* -- end insurance -- */
 

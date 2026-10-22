@@ -13,6 +13,7 @@ import ru.amigo.axioma.account.Currency;
 import ru.amigo.axioma.insurance.dto.CreatePolicyRequest;
 import ru.amigo.axioma.insurance.dto.PolicyResponse;
 import ru.amigo.axioma.insurance.exception.InsufficientAvailableFundsException;
+import ru.amigo.axioma.insurance.exception.PolicyAccessDeniedException;
 import ru.amigo.axioma.user.User;
 
 import java.math.BigDecimal;
@@ -105,7 +106,7 @@ public class InsuranceServiceTest {
         when(accountRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(account));
 
         // when & then
-        assertThrows(RuntimeException.class,
+        assertThrows(PolicyAccessDeniedException.class,
                 () -> insuranceService.createPolicy(999L, request));
     }
 }

@@ -11,6 +11,7 @@ import ru.amigo.axioma.insurance.dto.InsuranceQuoteResponse;
 import ru.amigo.axioma.insurance.dto.IssuePolicyResponse;
 import ru.amigo.axioma.insurance.dto.PolicyResponse;
 import ru.amigo.axioma.insurance.exception.InsufficientAvailableFundsException;
+import ru.amigo.axioma.insurance.exception.PolicyAccessDeniedException;
 import ru.amigo.axioma.ledger.EntryType;
 import ru.amigo.axioma.ledger.LedgerEntry;
 import ru.amigo.axioma.ledger.LedgerEntryRepository;
@@ -95,7 +96,7 @@ public class InsuranceService {
 
         // 2. Проверить, что это счет данного пользователя
         if (!account.getUser().getId().equals(userId)) {
-            throw new RuntimeException("Чужой счет");
+            throw new PolicyAccessDeniedException(request.accountId());
         }
 
         // 3. Проверить доступный баланс (balance - heldAmount >= amount)
