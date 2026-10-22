@@ -18,6 +18,9 @@ spring:
     error:
       include-message: always
       include-binding-errors: always
+  threads:
+    virtual:
+      enabled: true
 
 server:
   port: 8080
