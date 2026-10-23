@@ -18,6 +18,11 @@ spring:
     error:
       include-message: always
       include-binding-errors: always
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
   threads:
     virtual:
       enabled: true
