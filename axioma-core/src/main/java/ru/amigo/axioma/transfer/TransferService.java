@@ -15,6 +15,8 @@ import ru.amigo.axioma.idempotency.IdempotencyKey;
 import ru.amigo.axioma.idempotency.IdempotencyKeyService;
 import ru.amigo.axioma.ledger.EntryType;
 import ru.amigo.axioma.ledger.LedgerEntry;
+import ru.amigo.axioma.outbox.OutboxService;
+import ru.amigo.axioma.outbox.event.TransferCompletedEvent;
 import ru.amigo.axioma.transfer.dto.CreateTransferRequest;
 import ru.amigo.axioma.transfer.dto.TransferResponse;
 import ru.amigo.axioma.transfer.exception.AccountNotActiveException;
@@ -43,17 +45,20 @@ public class TransferService {
     private final AccountRepository accountRepository;
     private final IdempotencyKeyService idempotencyKeyService;
     private final ObjectMapper objectMapper;
+    private final OutboxService outboxService;
 
     public TransferService(
             TransferRepository transferRepository,
             AccountRepository accountRepository,
             IdempotencyKeyService idempotencyKeyService,
-            ObjectMapper objectMapper
+            ObjectMapper objectMapper,
+            OutboxService outboxService
     ) {
         this.transferRepository = transferRepository;
         this.accountRepository = accountRepository;
         this.idempotencyKeyService = idempotencyKeyService;
         this.objectMapper = objectMapper;
+        this.outboxService = outboxService;
     }
 
     @Transactional
@@ -123,7 +128,21 @@ public class TransferService {
         Transfer saved = transferRepository.save(transfer);
         TransferResponse response = TransferResponse.from(saved);
 
-        // 4. Сохранение ответа для идемпотентности
+        // 4. Сохранение события в outbox
+        outboxService.saveEvent(
+            "TRANSFER",
+            saved.getId(),
+            "TransferCompleted",
+            new TransferCompletedEvent(
+                saved.getId(),
+                saved.getFromAccount().getId(),
+                saved.getToAccount().getId(),
+                saved.getAmount(),
+                saved.getCurrency()
+            )
+        );
+
+        // 5. Сохранение ответа для идемпотентности
         if (idempotencyKey != null && !idempotencyKey.isBlank()) {
             try {
                 String responseJson = objectMapper.writeValueAsString(response);

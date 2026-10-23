@@ -15,6 +15,8 @@ import ru.amigo.axioma.insurance.exception.PolicyAccessDeniedException;
 import ru.amigo.axioma.ledger.EntryType;
 import ru.amigo.axioma.ledger.LedgerEntry;
 import ru.amigo.axioma.ledger.LedgerEntryRepository;
+import ru.amigo.axioma.outbox.OutboxService;
+import ru.amigo.axioma.outbox.event.PolicyIssuedEvent;
 import ru.amigo.axioma.user.User;
 import ru.amigo.axioma.user.UserRepository;
 import ru.amigo.axioma.user.exception.UserNotFoundException;
@@ -36,6 +38,7 @@ public class InsuranceService {
     private final LedgerEntryRepository ledgerEntryRepository;
     private final InsuranceQuoteRepository quoteRepository;
     private final UserRepository userRepository;
+    private final OutboxService outboxService;
 
     public InsuranceService(
             InsuranceQuoteClient quoteClient,
@@ -43,7 +46,8 @@ public class InsuranceService {
             InsurancePolicyRepository policyRepository,
             LedgerEntryRepository ledgerEntryRepository,
             InsuranceQuoteRepository quoteRepository,
-            UserRepository userRepository
+            UserRepository userRepository,
+            OutboxService outboxService
     ) {
         this.quoteClient = quoteClient;
         this.accountRepository = accountRepository;
@@ -51,6 +55,7 @@ public class InsuranceService {
         this.ledgerEntryRepository = ledgerEntryRepository;
         this.quoteRepository = quoteRepository;
         this.userRepository = userRepository;
+        this.outboxService = outboxService;
     }
 
     public List<InsuranceQuoteResponse> getQuotes(Long userId, InsuranceQuoteRequest request) {
@@ -150,6 +155,18 @@ public class InsuranceService {
             LedgerEntry entry = new LedgerEntry(null, account, EntryType.DEBIT, policy.getAmount(), account.getBalance());
             ledgerEntryRepository.save(entry);
 
+            // Пишем в outbox
+            outboxService.saveEvent(
+                "POLICY",
+                policy.getId(),
+                "PolicyIssued",
+                new PolicyIssuedEvent(
+                    policy.getId(),
+                    response.policyNumber(),
+                    policy.getUser().getEmail(),
+                    policy.getAmount()
+                )
+            );
         } else {
             // 4. Компенсация: страховая отказала, снимаем холд
             policy.setStatus(PolicyStatus.CANCELLED);
