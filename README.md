@@ -28,7 +28,7 @@
 | Сборка | Maven (через Maven Wrapper) |
 | Контейнеризация | Docker, Docker Compose |
 | Документация API | Springdoc OpenAPI (Swagger UI) |
-| Метрики | Spring Boot Actuator, Micrometer |
+| Метрики | Spring Boot Actuator, Micrometer, Prometheus, Grafana |
 | Тестирование | JUnit 5, Mockito, Testcontainers, WireMock |
 | Аутентификация | Spring Security, JWT |
 
@@ -65,8 +65,9 @@
 | 1 | Ядро: счета, переводы, леджер, идемпотентность, JWT, тесты      | ✅ |
 | 2 | Депозиты (ATM) + заглушка-банк + Retry/CircuitBreaker           | ✅ |
 | 3 | e-ОСАГО с холдом, TTL и агрегатором страховок                   | ✅ |
-| 4 | Kafka + outbox                                                  | 🔄 в работе |
-| 5 | Фронт на Thymeleaf                                              | ⏳ план |
+| 4 | Kafka, Outbox и Observability                                   | ✅ |
+| 5 | Фронт на Thymeleaf                                              | 🔄 в работе |
+| 6 | Развитие Ядра                                                   | ⏳ план |
 
 ---
 
@@ -102,7 +103,7 @@ Spring Boot сам поднимет PostgreSQL через Docker Compose.
 - [x] Депозиты через эмулятор ATM (axioma-bankomat)
 - [x] Retry и Circuit Breaker (Resilience4j)
 - [x] e-ОСАГО: расчёт, холд, TTL, сага
-- [ ] Kafka + outbox
+- [x] Kafka + outbox
 - [ ] Минимальный фронт на Thymeleaf
 
 ## Автор
