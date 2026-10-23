@@ -15,6 +15,7 @@ import ru.amigo.axioma.insurance.exception.PolicyAccessDeniedException;
 import ru.amigo.axioma.ledger.EntryType;
 import ru.amigo.axioma.ledger.LedgerEntry;
 import ru.amigo.axioma.ledger.LedgerEntryRepository;
+import ru.amigo.axioma.metrics.MetricsService;
 import ru.amigo.axioma.outbox.OutboxService;
 import ru.amigo.axioma.outbox.event.PolicyIssuedEvent;
 import ru.amigo.axioma.user.User;
@@ -39,6 +40,7 @@ public class InsuranceService {
     private final InsuranceQuoteRepository quoteRepository;
     private final UserRepository userRepository;
     private final OutboxService outboxService;
+    private final MetricsService metricsService;
 
     public InsuranceService(
             InsuranceQuoteClient quoteClient,
@@ -47,7 +49,8 @@ public class InsuranceService {
             LedgerEntryRepository ledgerEntryRepository,
             InsuranceQuoteRepository quoteRepository,
             UserRepository userRepository,
-            OutboxService outboxService
+            OutboxService outboxService,
+            MetricsService metricsService
     ) {
         this.quoteClient = quoteClient;
         this.accountRepository = accountRepository;
@@ -56,6 +59,7 @@ public class InsuranceService {
         this.quoteRepository = quoteRepository;
         this.userRepository = userRepository;
         this.outboxService = outboxService;
+        this.metricsService = metricsService;
     }
 
     public List<InsuranceQuoteResponse> getQuotes(Long userId, InsuranceQuoteRequest request) {
@@ -154,6 +158,9 @@ public class InsuranceService {
             // Пишем в леджер (DEBIT)
             LedgerEntry entry = new LedgerEntry(null, account, EntryType.DEBIT, policy.getAmount(), account.getBalance());
             ledgerEntryRepository.save(entry);
+
+            // Метрики
+            metricsService.recordPolicyIssued();
 
             // Пишем в outbox
             outboxService.saveEvent(

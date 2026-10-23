@@ -15,6 +15,7 @@ import ru.amigo.axioma.idempotency.IdempotencyKey;
 import ru.amigo.axioma.idempotency.IdempotencyKeyService;
 import ru.amigo.axioma.ledger.EntryType;
 import ru.amigo.axioma.ledger.LedgerEntry;
+import ru.amigo.axioma.metrics.MetricsService;
 import ru.amigo.axioma.outbox.OutboxService;
 import ru.amigo.axioma.outbox.event.TransferCompletedEvent;
 import ru.amigo.axioma.transfer.dto.CreateTransferRequest;
@@ -46,19 +47,22 @@ public class TransferService {
     private final IdempotencyKeyService idempotencyKeyService;
     private final ObjectMapper objectMapper;
     private final OutboxService outboxService;
+    private final MetricsService metricsService;
 
     public TransferService(
             TransferRepository transferRepository,
             AccountRepository accountRepository,
             IdempotencyKeyService idempotencyKeyService,
             ObjectMapper objectMapper,
-            OutboxService outboxService
+            OutboxService outboxService,
+            MetricsService metricsService
     ) {
         this.transferRepository = transferRepository;
         this.accountRepository = accountRepository;
         this.idempotencyKeyService = idempotencyKeyService;
         this.objectMapper = objectMapper;
         this.outboxService = outboxService;
+        this.metricsService = metricsService;
     }
 
     @Transactional
@@ -127,6 +131,9 @@ public class TransferService {
 
         Transfer saved = transferRepository.save(transfer);
         TransferResponse response = TransferResponse.from(saved);
+
+        // Метрики
+        metricsService.recordTransferSuccess();
 
         // 4. Сохранение события в outbox
         outboxService.saveEvent(

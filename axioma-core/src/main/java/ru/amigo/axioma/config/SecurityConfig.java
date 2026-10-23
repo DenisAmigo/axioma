@@ -50,7 +50,7 @@ public class SecurityConfig {
                         // Публичные эндпоинты
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                        .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/api/users/**").permitAll()
                         // Всё остальное — только с токеном
                         .anyRequest().authenticated()
