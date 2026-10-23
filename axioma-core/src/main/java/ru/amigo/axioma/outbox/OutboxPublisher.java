@@ -6,9 +6,11 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author denis.chernonozhkin
@@ -42,9 +44,17 @@ public class OutboxPublisher {
 
         for (OutboxEvent event : pendingEvents) {
             try {
+                Map<String, Object> envelope = Map.of(
+                    "eventType", event.getEventType(),
+                    "aggregateType", event.getAggregateType(),
+                    "aggregateId", event.getAggregateId(),
+                    "payload", event.getPayload()
+                );
+                String envelopeJson = new ObjectMapper().writeValueAsString(envelope);
+
                 // Отправляем в Kafka. Ключ (event.getAggregateId()) гарантирует,
                 // что все события по одному переводу/полису попадут в одну партицию.
-                kafkaTemplate.send(TOPIC_NAME, String.valueOf(event.getAggregateId()), event.getPayload())
+                kafkaTemplate.send(TOPIC_NAME, String.valueOf(event.getAggregateId()), envelopeJson)
                         .whenComplete((result, exception) -> {
                             if (exception == null) {
                                 log.info("Outbox: событие {} успешно отправлено в Kafka", event.getId());

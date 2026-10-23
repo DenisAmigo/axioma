@@ -51,6 +51,13 @@ services:
       - KAFKA_CLUSTERS_0_NAME=local
       - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:29092
 
+  maildev:
+    image: mailhog/mailhog
+    container_name: axioma-mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
 volumes:
   axioma-postgres-data:
   axioma-kafka-data:
